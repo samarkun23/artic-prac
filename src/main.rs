@@ -1,6 +1,6 @@
 
 use actix_web::{App, HttpResponse, HttpServer, Responder, get, post, web::{self, Json}};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[actix_web::main]
 async  fn main() {
@@ -22,14 +22,15 @@ async  fn main() {
 
 }
 
-#[post("/hello")]
-async fn hello(user: Json<User>) -> impl Responder{
-    let msg = format!("user name: {}, age: {}", user.name, user.age);
-    HttpResponse::Ok().body(msg)
+#[get("/hello")]
+async fn hello() -> impl Responder{
+    let person = Person {name : "Sam".to_string(), age: 20};
+    let person_json = serde_json::to_string(&person).unwrap();
+    HttpResponse::Ok().json(person_json)
 }
 
-#[derive(Deserialize)]
-struct User {
+#[derive(Serialize)]
+struct Person {
     name: String,
     age: i32
 }
