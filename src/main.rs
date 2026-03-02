@@ -1,16 +1,19 @@
 
 use actix_web::{App, HttpResponse, HttpServer, Responder, get, post, web::{self, Json}};
-use serde::{Deserialize, Serialize};
+ 
 
 #[actix_web::main]
 async  fn main() {
-    HttpServer::new(|| {
+    let person = Person{
+        name: "Jim".to_string(),
+        age: 30
+    };
+    HttpServer::new( move || { // move is used to move the ownership of person into the closure
         App::new()
+            .app_data(web::Data::new(person.clone()))
             .route("/", web::get().to(|| async{
                 HttpResponse::Ok().body("hello world".to_string())
             }))   
-            .route("/user", web::get().to(|| async {HttpResponse::Ok().body("hy".to_string())}))
-            .route("/name", web::post().to(|| async{HttpResponse::Ok().body("update a vairable".to_string())}))
             .route("/name", web::delete().to(|| async{HttpResponse::Ok().body("deleted")}))
             .service(hello)
     })
@@ -23,13 +26,12 @@ async  fn main() {
 }
 
 #[get("/hello")]
-async fn hello() -> impl Responder{
-    let person = Person {name : "Sam".to_string(), age: 20};
-    let person_json = serde_json::to_string(&person).unwrap();
-    HttpResponse::Ok().json(person_json)
+async fn hello(person: web::Data<Person>) -> impl Responder{
+    let msg = format!("Hello, {}! You are {} years old.", person.name, person.age);
+    HttpResponse::Ok().body(msg)
 }
 
-#[derive(Serialize)]
+#[derive(Clone)]
 struct Person {
     name: String,
     age: i32
