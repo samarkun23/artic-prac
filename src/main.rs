@@ -1,21 +1,23 @@
 
+use std::sync::Mutex;
+
 use actix_web::{App, HttpResponse, HttpServer, Responder, get, post, web::{self, Json}};
  
 
 #[actix_web::main]
 async  fn main() {
-    let person = Person{
-        name: "Jim".to_string(),
-        age: 30
-    };
+    let person = web::Data::new(Person{name: Mutex::new(String::from("John")), age: Mutex::new(30)});
+
     HttpServer::new( move || { // move is used to move the ownership of person into the closure
         App::new()
+            .app_data(person.clone())
             .app_data(web::Data::new(person.clone()))
             .route("/", web::get().to(|| async{
                 HttpResponse::Ok().body("hello world".to_string())
             }))   
             .route("/name", web::delete().to(|| async{HttpResponse::Ok().body("deleted")}))
             .service(hello)
+            .service(world)
     })
         .bind("0.0.0.0:3000")
         .unwrap()
@@ -27,12 +29,24 @@ async  fn main() {
 
 #[get("/hello")]
 async fn hello(person: web::Data<Person>) -> impl Responder{
-    let msg = format!("Hello, {}! You are {} years old.", person.name, person.age);
+    *person.name.lock().unwrap() = String::from("Andy");
+    *person.age.lock().unwrap() = 25;
+    HttpResponse::Ok().body("body")
+}
+
+#[get("/world")]
+async fn world(person : web::Data<Person>) -> impl Responder{
+    let name: String = person.name.lock().unwrap().clone();
+    let age: i32 = *person.age.lock().unwrap();
+
+    let msg = format!("Person name is {}, age is {}", name, age);
+
+
     HttpResponse::Ok().body(msg)
 }
 
-#[derive(Clone)]
+
 struct Person {
-    name: String,
-    age: i32
+    name: Mutex<String>,
+    age: Mutex<i32>
 }
