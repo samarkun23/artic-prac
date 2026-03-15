@@ -12,6 +12,7 @@ async  fn main() {
             .service(hello)
             .service(world)
             .service(user)
+            .default_service(web::to(not_found))
     })
         .bind("0.0.0.0:3000")
         .unwrap()
@@ -34,4 +35,8 @@ async fn world() -> impl Responder {
 #[get("/user")]
 async fn user() -> impl Responder {
     HttpResponse::InternalServerError().body("user") // here so many error are avilable 
+}
+
+async fn not_found() -> impl Responder{
+    HttpResponse::NotFound().body("Not found")
 }
