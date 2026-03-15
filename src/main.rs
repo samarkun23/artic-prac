@@ -13,6 +13,11 @@ async  fn main() {
             .service(world)
             .service(user)
             .default_service(web::to(not_found))
+            .service( // nest route & Scope 
+                web::scope("/api")
+                .route("/nestroute", web::get().to(handler))
+                .route("/sec", web::get().to(sec))
+            )
     })
         .bind("0.0.0.0:3000")
         .unwrap()
@@ -39,4 +44,12 @@ async fn user() -> impl Responder {
 
 async fn not_found() -> impl Responder{
     HttpResponse::NotFound().body("Not found")
+}
+
+async fn handler() -> impl Responder{
+    HttpResponse::Ok().body("nestedRoute")
+}
+
+async fn sec() -> impl Responder{
+    HttpResponse::Ok().body("sec_nestedRoute")
 }
