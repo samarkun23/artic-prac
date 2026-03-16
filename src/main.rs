@@ -10,8 +10,12 @@ async  fn main() {
                 HttpResponse::Ok().body("hello world".to_string())
             }))   
             .service(hello)
-            .service(world)
-            .wrap(from_fn(my_middleware))
+            .service(
+                web::scope("/world")
+                    .route("", web::get().to(world))
+                    .wrap(from_fn(my_middleware))
+            )
+            // .wrap(from_fn(my_middleware))
             .service(user)
             .default_service(web::to(not_found))
             .service( // nest route & Scope 
@@ -34,7 +38,7 @@ async  fn hello() -> impl Responder {
     "Hello" 
 }
 
-#[get("/world")]
+// #[get("/world")]
 async fn world() -> impl Responder {
     String::from("world")
 }
