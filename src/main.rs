@@ -1,4 +1,4 @@
-use actix_web::{App, HttpResponse, HttpServer, Responder, get, post, web::{self, Header, Json}};
+use actix_web::{App, Error, HttpResponse, HttpServer, Responder, body::MessageBody, dev::{ServiceRequest, ServiceResponse}, get, middleware::{Next, from_fn}, post, web::{self, Header, Json}};
  
 
 #[actix_web::main]
@@ -11,6 +11,7 @@ async  fn main() {
             }))   
             .service(hello)
             .service(world)
+            .wrap(from_fn(my_middleware))
             .service(user)
             .default_service(web::to(not_found))
             .service( // nest route & Scope 
@@ -18,6 +19,7 @@ async  fn main() {
                 .route("/nestroute", web::get().to(handler))
                 .route("/sec", web::get().to(sec))
             )
+            
     })
         .bind("0.0.0.0:3000")
         .unwrap()
@@ -52,4 +54,11 @@ async fn handler() -> impl Responder{
 
 async fn sec() -> impl Responder{
     HttpResponse::Ok().body("sec_nestedRoute")
+}
+
+// middleware 
+async fn my_middleware(req: ServiceRequest, next: Next<impl MessageBody>) -> Result<ServiceResponse<impl MessageBody>, Error>{
+    println!("HELLO FROM MIDDLEWARE");
+    // next.call(req).await
+    Ok(req.into_response(HttpResponse::Unauthorized().body("Unauthorized")))
 }
