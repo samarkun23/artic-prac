@@ -40,9 +40,11 @@ async fn main() {
     .unwrap()
 }
 
-#[get("/hello")]
+#[get("/hello/{a:.*}")]
 async fn hello(req: HttpRequest) -> impl Responder {
-    web::redirect("/hello", "world") 
+    let path = req.match_info().query("a");
+    let msg = format!("path: {} ",path);
+    HttpResponse::Ok().body(msg)
 }
 
 // #[get("/world")]
