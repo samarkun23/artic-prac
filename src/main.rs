@@ -17,7 +17,6 @@ async fn main() {
                 "/",
                 web::get().to(|| async { HttpResponse::Ok().body("hello world".to_string()) }),
             )
-            .service(web::redirect("/hello", "world"))
             .service(hello)
             .service(
                 web::scope("/world")
@@ -43,10 +42,7 @@ async fn main() {
 
 #[get("/hello")]
 async fn hello(req: HttpRequest) -> impl Responder {
-    match req.extensions().get::<String>() {
-        Some(msg) => HttpResponse::Ok().body(msg.to_string()),
-        None => HttpResponse::Ok().body("No data"),
-    }
+    web::redirect("/hello", "world") 
 }
 
 // #[get("/world")]
