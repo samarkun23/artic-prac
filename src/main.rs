@@ -1,5 +1,5 @@
 use actix_web::{
-    App, Error, HttpMessage, HttpRequest, HttpResponse, HttpServer, Responder, body::MessageBody, dev::{ServiceRequest, ServiceResponse}, get, guard, middleware::{Next, from_fn}, post, web::{self, Header, Json, route}
+    App, Error, HttpMessage, HttpRequest, HttpResponse, HttpServer, Responder, body::MessageBody, dev::{ServiceRequest, ServiceResponse}, get, guard, middleware::{Next, from_fn}, post, web::{self, Header, Json, ServiceConfig, route}
 };
 
 #[actix_web::main]
@@ -27,6 +27,14 @@ async fn main() {
                 web::scope("/api")
                     .route("/nestroute", web::get().to(handler))
                     .route("/sec", web::get().to(sec)),
+            )
+            .service(
+                web::scope("/api1")
+                    .configure(cfg_fn)
+            )
+            .service(
+                web::scope("/api2")
+                    .configure(cfg_fn)
             )
     })
     .bind("0.0.0.0:3000")
@@ -86,4 +94,12 @@ async fn my_middleware(
 struct Person{
     name: String,
     age: i32
+}
+
+// resuable and serive config route
+fn cfg_fn(cfg: &mut ServiceConfig){
+    cfg.service(
+        web::scope("/hello")
+                    .route("/world", web::get().to( || async {HttpResponse::Ok().body("Hello world!")}))
+    );
 }
