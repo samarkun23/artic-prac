@@ -1,11 +1,5 @@
 use actix_web::{
-    App, Error, HttpMessage, HttpRequest, HttpResponse, HttpServer, Responder,
-    body::MessageBody,
-    dev::{ServiceRequest, ServiceResponse},
-    get,
-    middleware::{Next, from_fn},
-    post,
-    web::{self, Header, Json},
+    App, Error, HttpMessage, HttpRequest, HttpResponse, HttpServer, Responder, body::MessageBody, dev::{ServiceRequest, ServiceResponse}, get, guard, middleware::{Next, from_fn}, post, web::{self, Header, Json, route}
 };
 
 #[actix_web::main]
@@ -20,7 +14,9 @@ async fn main() {
             .service(hello)
             .service(
                 web::scope("/world")
+                    .guard(guard::Post())
                     .route("", web::get().to(world))
+                    .route("/protect", web::post().to(|| async {HttpResponse::Ok().body("procted router")}))
                     .wrap(from_fn(my_middleware)),
             )
             // .wrap(from_fn(my_middleware))
